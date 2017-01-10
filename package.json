@@ -1,0 +1,24 @@
+{
+  "name": "libird",
+  "version": "0.0.1",
+  "description": "a light bird http server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luckykaiyi/libird.git"
+  },
+  "keywords": [
+    "http",
+    "server",
+    "nodejs"
+  ],
+  "author": "luckykaiyi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luckykaiyi/libird/issues"
+  },
+  "homepage": "https://github.com/luckykaiyi/libird#readme"
+}
