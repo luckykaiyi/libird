@@ -1,4 +1,5 @@
-var net = require('net');
+var http = require('http');
+var url = require('url');
 var fs = require('fs');
 var utils = require('./lib/utils.js');
 
@@ -8,6 +9,9 @@ var libird = {
     router: {
         list: {},
         get: function(path, cb) {
+            libird.setRouter(path, cb);
+        },
+        post: function(path, cb) {
             libird.setRouter(path, cb);
         }
     },
@@ -36,64 +40,66 @@ var libird = {
     runRouter: function(path, req, res) {
         this.router.list[path].run(req, res);
     },
-    server: net.createServer(function(sock) {
-        sock.on('data', function(data) {
-            var req = utils.parseReqHeaders(data.toString());
-            var res = {
-                header: {
-                    protocol: 'HTTP/1.1',
-                    status: '200 OK',
-                    contentType: utils.getContentType(req),
-                },
-                body:'',
-                getResData: function() {
-                    var resHeader = this.header.protocol + ' ' + this.header.status + '\n' + 'Content-Type:' + this.header.contentType + '\n' + 'Content-Length:' + Buffer.byteLength(this.body, 'utf-8') + '\n\n';
-                    var resBody = this.body;
-                    var resData = resHeader + resBody;
-                    return resData;
-                },
-                send:function(data) {
-                    this.body = JSON.stringify(data);
-                    var resData = this.getResData();
-                    sock.write(resData);
-                }
-            };
-            var path = req.path;
-            var routerPath = utils.matchRouter(path, libird.router.list);
-            if(routerPath) {
-                var item =libird.router.list[routerPath];
-                if (item.withParam) {
-                    var k = item.param;
-                    var v = path.match(/[^\/]+$/)[0];
-                    req.params[k] = v;
-                }
-                libird.runRouter(routerPath, req, res);
-            } else {
-                if (path == '/') {
-                    path = '/index.html'
-                }
-                var filePath = libird.dirPath + path;
-                fs.readFile(filePath, 'utf-8', function(err, data) {
-                    if(err) {
-                        console.log(err);
-                        res.header.status = '404 Not Found';
-                        res.body = '404 Not Found!';
-                    }else {
-                        res.body = data;
-                    }
-                    var resData = res.getResData();
-                    sock.write(resData);
-                })
+    server: http.createServer(function(req, res) {
+        res.send = function(data, type) {
+            if (type == 'json') {
+                data = JSON.stringify(data); 
             }
-        })
+            res.statusCode = 200;
+            res.end(data);
+        };
+        var reqUrl = url.parse(req.url, true);
+        req.pathname = reqUrl.pathname;
+        req.query = reqUrl.query;
+        res.setHeader('Content-Type', utils.getContentType(req));
+        var pathname = req.pathname; 
+        var routerPath = utils.matchRouter(pathname, libird.router.list);
+        if(routerPath) {
+            var item =libird.router.list[routerPath];
+            if (item.withParam) {
+                req.params = {};
+                var k = item.param;
+                var v = pathname.match(/[^\/]+$/)[0];
+                req.params[k] = v;
+            }
+            if(req.method == 'POST') {
+                var body = '';
+                req.on('data', function(data) {
+                    body += data;
+                    console.log('partial body:' + body);
+                })
+                req.on('end', function() {
+                    console.log('body:' + body);
+                    req.body = JSON.parse(body);
+                    libird.runRouter(routerPath, req, res);
+                })
+            } else {
+                libird.runRouter(routerPath, req, res);
+            }
+        } else {
+            if (pathname == '/') {
+                pathname = '/index.html'
+            }
+            var filePath = libird.dirPath + pathname;
+            fs.readFile(filePath, 'utf-8', function(err, data) {
+                if(err) {
+                    console.log(err);
+                    res.statusCode = 404;
+                    res.end('404 Not Found!');
+                }else {
+                    res.statusCode = 200;
+                    res.end(data);
+                }
+            })
+        }
     }),
     start: function(port) {
         if(port) {
             this.setPort(port);
         }
-        this.server.listen(this.port, function() {
-            console.log('libird listening at:' + libird.port);
-        })
+        this.server.listen(this.port, function(){
+            console.log('server listening at:' + libird.port);
+        });
     }
 }
 module.exports = libird;
