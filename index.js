@@ -2,6 +2,7 @@ var http = require('http');
 var url = require('url');
 var fs = require('fs');
 var utils = require('./lib/utils.js');
+var crypto = require('crypto');
 
 var libird = {
     port: 8888,
@@ -15,6 +16,7 @@ var libird = {
             libird.setRouter(path, cb);
         }
     },
+    session: {},
     setPort: function(port) {
         this.port = port;
     },
@@ -48,18 +50,35 @@ var libird = {
             res.statusCode = 200;
             res.end(data);
         };
+        req.cookies = utils.parseCookie(req.headers.cookie);
         res.setCookie = function(k,v) {
-            var s = k + '=' + v + '; Path=/;';
+            var value = v.toString() + new Date().getTime();
+            var hash = crypto.createHash('md5').update(value).digest('hex');
+            if (k in libird.session) {
+                libird.session[k][hash] = v;
+            } else {
+                libird.session[k] = {};
+                libird.session[k][hash] = v;
+            }
+            var s = k + '=' + hash + '; Path=/;';
             res.setHeader('Set-Cookie', s);
         };
         res.clearCookie = function(k) {
             var s = k + "=; Path=/;";
+            var cookie = req.cookies[k];
+            if (k in libird.session) {
+                delete libird.session[k][cookie];
+            }
             res.setHeader('Set-Cookie', s);
         };
-        req.getCookie = function(k) {
-            var cookies = utils.parseCookie(req.headers.cookie);
-            return cookies[k];
-        }
+        req.getSession = function(k) {
+            var cookie = req.cookies[k];
+            var session = '';
+            if (k in libird.session) {
+                session = libird.session[k][cookie];
+            }
+            return session;
+        };
         var reqUrl = url.parse(req.url, true);
         req.pathname = reqUrl.pathname;
         req.query = reqUrl.query;
