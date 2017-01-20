@@ -42,12 +42,24 @@ var libird = {
     },
     server: http.createServer(function(req, res) {
         res.send = function(data, type) {
-            if (type == 'json') {
+            if (type && type == 'json') {
                 data = JSON.stringify(data); 
             }
             res.statusCode = 200;
             res.end(data);
         };
+        res.setCookie = function(k,v) {
+            var s = k + '=' + v + '; Path=/;';
+            res.setHeader('Set-Cookie', s);
+        };
+        res.clearCookie = function(k) {
+            var s = k + "=; Path=/;";
+            res.setHeader('Set-Cookie', s);
+        };
+        req.getCookie = function(k) {
+            var cookies = utils.parseCookie(req.headers.cookie);
+            return cookies[k];
+        }
         var reqUrl = url.parse(req.url, true);
         req.pathname = reqUrl.pathname;
         req.query = reqUrl.query;
@@ -66,11 +78,11 @@ var libird = {
                 var body = '';
                 req.on('data', function(data) {
                     body += data;
-                    console.log('partial body:' + body);
                 })
                 req.on('end', function() {
-                    console.log('body:' + body);
-                    req.body = JSON.parse(body);
+                    if (body) {
+                        req.body = JSON.parse(body);
+                    }
                     libird.runRouter(routerPath, req, res);
                 })
             } else {
