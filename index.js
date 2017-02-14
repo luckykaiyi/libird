@@ -100,7 +100,14 @@ var libird = {
                 })
                 req.on('end', function() {
                     if (body) {
-                        req.body = JSON.parse(body);
+                        var type = req.headers['content-type'];
+                        if (type.indexOf('x-www-form-urlencoded') != -1)  {
+                            req.body = utils.parseQueryString(body);
+                        } else if (type.indexOf('json') != -1) {
+                            req.body = JSON.parse(body);
+                        } else {
+                            req.body = body;
+                        }
                     }
                     libird.runRouter(routerPath, req, res);
                 })
