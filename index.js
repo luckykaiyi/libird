@@ -8,12 +8,15 @@ var libird = {
     port: 8888,
     dirPath: './',
     router: {
-        list: {},
+        list: {
+            get:{},
+            post:{}
+        },
         get: function(path, cb) {
-            libird.setRouter(path, cb);
+            libird.setRouter('get', path, cb);
         },
         post: function(path, cb) {
-            libird.setRouter(path, cb);
+            libird.setRouter('post', path, cb);
         }
     },
     session: {},
@@ -23,7 +26,7 @@ var libird = {
     setDirPath: function(path) {
         this.dirPath = path;
     },
-    setRouter: function(path, cb) {
+    setRouter: function(method, path, cb) {
         var index = path.indexOf(':');
         var withParam, param;
         if(index == -1) {
@@ -33,14 +36,14 @@ var libird = {
             withParam = true;
             param = path.substring(++index);
         }
-        this.router.list[path] = {
+        this.router.list[method][path] = {
             withParam: withParam,
             param: param,
             run:cb
         };
     },
-    runRouter: function(path, req, res) {
-        this.router.list[path].run(req, res);
+    runRouter: function(method, path, req, res) {
+        this.router.list[method][path].run(req, res);
     },
     server: http.createServer(function(req, res) {
         res.send = function(data, type) {
@@ -84,16 +87,17 @@ var libird = {
         req.query = reqUrl.query;
         res.setHeader('Content-Type', utils.getContentType(req));
         var pathname = req.pathname; 
-        var routerPath = utils.matchRouter(pathname, libird.router.list);
+        var method = req.method.toLowerCase();
+        var routerPath = utils.matchRouter(pathname, libird.router.list[method]);
         if(routerPath) {
-            var item =libird.router.list[routerPath];
+            var item =libird.router.list[method][routerPath];
             if (item.withParam) {
                 req.params = {};
                 var k = item.param;
                 var v = pathname.match(/[^\/]+$/)[0];
                 req.params[k] = v;
             }
-            if(req.method == 'POST') {
+            if(method == 'post') {
                 var body = '';
                 req.on('data', function(data) {
                     body += data;
@@ -109,10 +113,10 @@ var libird = {
                             req.body = body;
                         }
                     }
-                    libird.runRouter(routerPath, req, res);
+                    libird.runRouter(method, routerPath, req, res);
                 })
             } else {
-                libird.runRouter(routerPath, req, res);
+                libird.runRouter(method, routerPath, req, res);
             }
         } else {
             if (pathname == '/') {
