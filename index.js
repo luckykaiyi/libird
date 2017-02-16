@@ -46,9 +46,11 @@ var libird = {
         this.router.list[method][path].run(req, res);
     },
     server: http.createServer(function(req, res) {
-        res.send = function(data, type) {
-            if (type && type == 'json') {
+        res.send = function(data) {
+            if (typeof data == 'object') {
                 data = JSON.stringify(data); 
+            } else if (typeof data == 'number') {
+                data = data.toString();
             }
             res.statusCode = 200;
             res.end(data);

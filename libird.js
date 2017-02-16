@@ -13,11 +13,11 @@ router.get('/detail/:id', function(req, res) {
 });
 router.post('/login', function(req, res) {
     res.setCookie('userid', '111111');
-    res.send(req.body, 'json');
+    res.send(req.body);
 });
 router.post('/logout', function(req, res) {
     res.clearCookie('userid');
-    res.send({"success": true}, 'json');
+    res.send({"success": true});
 });
 
 libird.start(8888);
