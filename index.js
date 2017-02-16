@@ -53,7 +53,9 @@ var libird = {
             res.statusCode = 200;
             res.end(data);
         };
-        req.cookies = utils.parseCookie(req.headers.cookie);
+        if(req.headers.cookie) {
+            req.cookies = utils.parseCookie(req.headers.cookie);
+        }
         res.setCookie = function(k,v) {
             var value = v.toString() + new Date().getTime();
             var hash = crypto.createHash('md5').update(value).digest('hex');
