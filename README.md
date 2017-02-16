@@ -11,7 +11,6 @@ Light Bird Server，基于 Node.js 的 web 开发框架。
 ```
 $ mkdir project
 $ cd project
-
 ```
 安装 libird
 
@@ -32,7 +31,6 @@ libird.start();
 
 // 修改端口号 比如监听本地8989端口号
 // libird.start(8989);
-
 ```
 运行 `$ node libird.js`，后台显示 `server listening at:8888`。
 浏览器打开 `http://127.0.0.1:8888` , 针对 `/` 的请求默认查找 `libird.js` 当前所在目录（即 `project` )下的 `index.html` 文件，如果未找到则显示 `404 Not Found!`。  
@@ -45,7 +43,6 @@ http://127.0.0.1:8888/index.css
 
 //访问 project/pages 目录下的 list.html 文件
 http://127.0.0.1:8888/pages/list.html 
-
 ```
 可以为静态文件指定根目录
 
@@ -72,7 +69,6 @@ router.get('/detail/:id', function(req, res) {
     res.send('req.params.id=' + req.params.id);
 });
 libird.start();
-
 ```
 上述代码运行后将以 `Hello World!` 响应针对`/`的请求。  
 访问 `http://127.0.0.1:8888/detail/100`，页面显示 `req.params.id=100`。
@@ -94,7 +90,6 @@ router.post('/logout', function(req, res) {
     res.send({"success": true}, 'json');
 });
 libird.start();
-
 ```
 运行 `$ node libird.js`。可以通过 Chrome 的插件 Postman 来模拟 POST 请求， 如下所示：
 
@@ -107,7 +102,6 @@ Cache-Control: no-cache
 Content-Type: application/x-www-form-urlencoded
 
 username=Lee&password=111
-
 ```
 libird 将 POST 请求的主体存入`req.body`
 
@@ -132,7 +126,6 @@ libird 将 POST 请求的主体存入`req.body`
       var status = userid ? '已登录' : '未登录';
       res.send(status);
    });
-   
   ```
 --
 
