@@ -1,6 +1,6 @@
 {
   "name": "libird",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "description": "a light bird http server",
   "main": "index.js",
   "scripts": {
