@@ -72,7 +72,6 @@ libird.start();
 ```
 上述代码运行后将以 `Hello World!` 响应针对`/`的请求。  
 访问 `http://127.0.0.1:8888/detail/100`，页面显示 `req.params.id=100`。
-`res.send(DATA, TYPE)` 默认 DATA 为 String ，当 DATA 为 json 格式时，需要第二个参数， `res.send({"key": "value"}, 'json')`
 
 ### POST
 
@@ -83,11 +82,11 @@ var libird = require('libird');
 var router = libird.router;
 router.post('/login', function(req, res) {
     res.setCookie('userid', '111111'); //新增 cookie
-    res.send(req.body, 'json'); 
+    res.send(req.body); 
 });
 router.post('/logout', function(req, res) {
     res.clearCookie('userid'); // 清除 cookie
-    res.send({"success": true}, 'json');
+    res.send({"success": true});
 });
 libird.start();
 ```
